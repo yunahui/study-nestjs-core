@@ -1,9 +1,10 @@
 import {
   Column,
-  Entity,
+  Entity, JoinColumn, OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
 import {CommonEntity} from "../../common/entity/common.entity";
+import {MovieDetail} from "./movie-detail.entity";
 
 @Entity()
 export class Movie extends CommonEntity {
@@ -16,4 +17,11 @@ export class Movie extends CommonEntity {
 
   @Column()
   genre: string;
+
+  @OneToOne(() => MovieDetail, {
+    cascade: true,
+    onDelete: "CASCADE",
+  })
+  @JoinColumn()
+  detail: MovieDetail
 }

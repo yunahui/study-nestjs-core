@@ -5,16 +5,25 @@ import {Movie} from "./entities/movie.entity";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Like, Repository} from "typeorm";
 import {GetMoviesDto} from "./dto/get-movies.dto";
+import {MovieDetail} from "./entities/movie-detail.entity";
 
 @Injectable()
 export class MoviesService {
 
   constructor(
-    @InjectRepository(Movie) private readonly movies: Repository<Movie>
+    @InjectRepository(Movie) private readonly movies: Repository<Movie>,
+    @InjectRepository(MovieDetail) private readonly movieDetails: Repository<MovieDetail>,
   ) {}
 
-  create(createMovieDto: CreateMovieDto) {
-    return this.movies.save(createMovieDto);
+  async create(createMovieDto: CreateMovieDto) {
+
+    return this.movies.save({
+      title: createMovieDto.title,
+      genre: createMovieDto.genre,
+      detail: {
+        description: createMovieDto.description,
+      }
+    });
   }
 
   findAll(query?: GetMoviesDto) {
@@ -29,7 +38,7 @@ export class MoviesService {
   }
 
   async findOne(id: number) {
-    const movie = await this.movies.findOne({ where: {id}});
+    const movie = await this.movies.findOne({ where: {id}, relations: ['detail'] });
 
     if (!movie) throw new NotFoundException();
 
@@ -37,16 +46,24 @@ export class MoviesService {
   }
 
   async update(id: number, updateMovieDto: UpdateMovieDto) {
-    await this.findOne(id);
+    const movie = await this.findOne(id);
 
-    await this.movies.update({id}, updateMovieDto);
+    const { description, ...movieRest } = updateMovieDto;
+
+    await this.movies.update({id}, movieRest);
+
+    if (description) {
+      await this.movieDetails.update({ id: movie.detail.id }, { description })
+    }
 
     return this.findOne(id);
   }
 
   async remove(id: number) {
-    await this.movies.delete(id)
+    const movie = await this.findOne(id);
 
+    await this.movies.delete(id);
+    await this.movieDetails.delete({ id: movie.id });
     return id;
   }
 }
