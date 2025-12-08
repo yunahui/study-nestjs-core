@@ -2,43 +2,51 @@ import {Injectable, NotFoundException} from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import {Movie} from "./entities/movie.entity";
+import {InjectRepository} from "@nestjs/typeorm";
+import {Like, Repository} from "typeorm";
+import {GetMoviesDto} from "./dto/get-movies.dto";
 
 @Injectable()
 export class MoviesService {
 
-  idCounter = 1;
-  data: Movie[] = [];
-
-  onModuleInit() {
-    this.data.push({
-      id: 1,
-      title: '해리포터',
-      genre: 'fantasy'
-    })
-  }
+  constructor(
+    @InjectRepository(Movie) private readonly movies: Repository<Movie>
+  ) {}
 
   create(createMovieDto: CreateMovieDto) {
-
+    return this.movies.save(createMovieDto);
   }
 
-  findAll() {
-    return this.data;
+  findAll(query?: GetMoviesDto) {
+
+    const qb = this.movies.createQueryBuilder('movies');
+
+    if (query?.title) {
+      qb.where({ title: Like(`%${query.title}%`)})
+    }
+
+    return qb.getMany();
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
+    const movie = await this.movies.findOne({ where: {id}});
 
-    const item = this.data.find(item => item.id === id);
+    if (!movie) throw new NotFoundException();
 
-    if (!item) throw new NotFoundException();
-
-    return item;
+    return movie;
   }
 
-  update(id: number, updateMovieDto: UpdateMovieDto) {
-    return updateMovieDto;
+  async update(id: number, updateMovieDto: UpdateMovieDto) {
+    await this.findOne(id);
+
+    await this.movies.update({id}, updateMovieDto);
+
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} movie`;
+  async remove(id: number) {
+    await this.movies.delete(id)
+
+    return id;
   }
 }
