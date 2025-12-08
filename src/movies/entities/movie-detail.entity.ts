@@ -1,5 +1,4 @@
-import {Column, Entity, OneToOne, PrimaryGeneratedColumn} from "typeorm";
-import {Movie} from "./movie.entity";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class MovieDetail {

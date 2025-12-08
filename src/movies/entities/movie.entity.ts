@@ -1,14 +1,15 @@
 import {
   Column,
-  Entity, JoinColumn, OneToOne,
+  Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import {CommonEntity} from "../../common/entity/common.entity";
-import {MovieDetail} from "./movie-detail.entity";
+} from 'typeorm';
+import { CommonEntity } from '../../common/entity/common.entity';
+import { MovieDetail } from './movie-detail.entity';
 
 @Entity()
 export class Movie extends CommonEntity {
-
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -20,8 +21,8 @@ export class Movie extends CommonEntity {
 
   @OneToOne(() => MovieDetail, {
     cascade: true,
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   @JoinColumn()
-  detail: MovieDetail
+  detail: MovieDetail;
 }
