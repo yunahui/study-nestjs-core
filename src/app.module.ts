@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { MoviesModule } from './movies/movies.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -9,6 +9,7 @@ import { DirectorsModule } from './directors/directors.module';
 import { Director } from './directors/entities/director.entity';
 import { GenresModule } from './genres/genres.module';
 import { Genre } from './genres/entities/genre.entity';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -40,6 +41,12 @@ import { Genre } from './genres/entities/genre.entity';
     MoviesModule,
     DirectorsModule,
     GenresModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
+    },
   ],
 })
 export class AppModule {}
