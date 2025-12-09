@@ -10,6 +10,9 @@ import { Director } from './directors/entities/director.entity';
 import { GenresModule } from './genres/genres.module';
 import { Genre } from './genres/entities/genre.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { User } from './users/entities/user.entity';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
         DB_USER: Joi.string().required(),
         DB_PASS: Joi.string().required(),
         DB_NAME: Joi.string().required(),
+        HASH_ROUNDS: Joi.number().required(),
+        ACCESS_TOKEN_SECRET: Joi.string().required(),
+        REFRESH_TOKEN_SECRET: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -34,13 +40,15 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
         username: cs.get<string>('DB_USER'),
         password: cs.get<string>('DB_PASS'),
         database: cs.get<string>('DB_NAME'),
-        entities: [Director, Genre, Movie, MovieDetail],
+        entities: [Director, Genre, Movie, MovieDetail, User],
         synchronize: true,
       }),
     }),
     MoviesModule,
     DirectorsModule,
     GenresModule,
+    AuthModule,
+    UsersModule,
   ],
   providers: [
     {
