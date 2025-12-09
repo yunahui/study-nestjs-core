@@ -13,6 +13,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
+import { ENV_KEY } from './common/const/env.const';
 
 @Module({
   imports: [
@@ -34,12 +35,12 @@ import { User } from './users/entities/user.entity';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (cs: ConfigService) => ({
-        type: cs.get<string>('DB_TYPE') as 'mariadb',
-        host: cs.get<string>('DB_HOST'),
-        port: cs.get<number>('DB_PORT'),
-        username: cs.get<string>('DB_USER'),
-        password: cs.get<string>('DB_PASS'),
-        database: cs.get<string>('DB_NAME'),
+        type: cs.get<string>(ENV_KEY.DB_TYPE) as 'mariadb',
+        host: cs.get<string>(ENV_KEY.DB_HOST),
+        port: cs.get<number>(ENV_KEY.DB_PORT),
+        username: cs.get<string>(ENV_KEY.DB_USER),
+        password: cs.get<string>(ENV_KEY.DB_PASS),
+        database: cs.get<string>(ENV_KEY.DB_NAME),
         entities: [Director, Genre, Movie, MovieDetail, User],
         synchronize: true,
       }),

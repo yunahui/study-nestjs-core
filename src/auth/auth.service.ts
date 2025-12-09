@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Role, User } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { ENV_KEY } from '../common/const/env.const';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +25,7 @@ export class AuthService {
 
     const hash = await bcrypt.hash(
       password,
-      this.cs.get<number>('HASH_ROUNDS')!,
+      this.cs.get<number>(ENV_KEY.HASH_ROUNDS)!,
     );
 
     await this.users.save({
@@ -63,11 +64,9 @@ export class AuthService {
   private async parseBearerToken(rawToken: string) {
     const [, token] = rawToken.split(' ');
 
-    const payload = await this.jwt.verifyAsync(token, {
-      secret: this.cs.get<string>('REFRESH_TOKEN_SECRET'),
+    return await this.jwt.verifyAsync(token, {
+      secret: this.cs.get<string>(ENV_KEY.REFRESH_TOKEN_SECRET),
     });
-
-    return payload;
   }
 
   private parseBasicToken(rawToken: string) {
@@ -84,8 +83,10 @@ export class AuthService {
   }
 
   private async issueToken(user: User, isRefresh: boolean) {
-    const accessTokenSecret = this.cs.get<string>('ACCESS_TOKEN_SECRET');
-    const refreshTokenSecret = this.cs.get<string>('REFRESH_TOKEN_SECRET');
+    const accessTokenSecret = this.cs.get<string>(ENV_KEY.ACCESS_TOKEN_SECRET);
+    const refreshTokenSecret = this.cs.get<string>(
+      ENV_KEY.REFRESH_TOKEN_SECRET,
+    );
 
     return this.jwt.signAsync(
       {
