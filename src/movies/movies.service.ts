@@ -50,10 +50,10 @@ export class MoviesService {
   }
 
   findAll(query?: GetMoviesDto) {
-    const qb = this.movies.createQueryBuilder('movies');
+    const qb = this.movies.createQueryBuilder('movie');
 
-    qb.relation('director');
-    qb.relation('genre');
+    qb.leftJoinAndSelect('movie.director', 'director');
+    qb.leftJoinAndSelect('movie.genres', 'genres');
 
     if (query?.title) {
       qb.where({ title: Like(`%${query.title}%`) });
@@ -95,8 +95,6 @@ export class MoviesService {
 
       movieRest['director'] = newDirector;
     }
-
-    console.log(movieRest);
 
     await this.movies.update({ id }, movieRest);
 
