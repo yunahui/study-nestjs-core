@@ -7,10 +7,12 @@ import {
   Patch,
   Post,
   Query,
+  UsePipes,
 } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
+import { MovieTitleValidationPipe } from './pipe/movie-title-validation.pipe';
 
 @Controller('movies')
 export class MoviesController {
@@ -22,8 +24,8 @@ export class MoviesController {
   }
 
   @Get()
-  findAll(@Query() query: any) {
-    return this.moviesService.findAll(query);
+  findAll(@Query('title', MovieTitleValidationPipe) title: string) {
+    return this.moviesService.findAll(title);
   }
 
   @Get(':id')

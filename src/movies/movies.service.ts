@@ -49,14 +49,14 @@ export class MoviesService {
     });
   }
 
-  findAll(query?: GetMoviesDto) {
+  findAll(title?: string) {
     const qb = this.movies.createQueryBuilder('movie');
 
     qb.leftJoinAndSelect('movie.director', 'director');
     qb.leftJoinAndSelect('movie.genres', 'genres');
 
-    if (query?.title) {
-      qb.where({ title: Like(`%${query.title}%`) });
+    if (title) {
+      qb.where({ title: Like(`%${title}%`) });
     }
 
     return qb.getMany();
