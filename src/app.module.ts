@@ -1,4 +1,10 @@
-import { ClassSerializerInterceptor, Module } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { MoviesModule } from './movies/movies.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -9,11 +15,14 @@ import { DirectorsModule } from './directors/directors.module';
 import { Director } from './directors/entities/director.entity';
 import { GenresModule } from './genres/genres.module';
 import { Genre } from './genres/entities/genre.entity';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { ENV_KEY } from './common/const/env.const';
+import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
+import { AuthGuard } from './auth/guard/auth.guard';
+import { RBACGuard } from './auth/guard/rbac.guard';
 
 @Module({
   imports: [
@@ -56,6 +65,28 @@ import { ENV_KEY } from './common/const/env.const';
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,
     },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RBACGuard,
+    },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(BearerTokenMiddleware)
+      .exclude({
+        path: 'auth/login',
+        method: RequestMethod.POST,
+      })
+      .exclude({
+        path: 'auth/register',
+        method: RequestMethod.POST,
+      })
+      .forRoutes('*');
+  }
+}

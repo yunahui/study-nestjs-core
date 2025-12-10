@@ -7,18 +7,20 @@ import {
   Patch,
   Post,
   Query,
-  UsePipes,
 } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { MovieTitleValidationPipe } from './pipe/movie-title-validation.pipe';
+import { RBAC } from '../auth/decorator/rbac.decorator';
+import { Role } from '../users/entities/user.entity';
 
 @Controller('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
   @Post()
+  @RBAC(Role.admin)
   create(@Body() createMovieDto: CreateMovieDto) {
     return this.moviesService.create(createMovieDto);
   }

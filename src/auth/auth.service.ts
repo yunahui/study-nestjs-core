@@ -54,19 +54,13 @@ export class AuthService {
   }
 
   async rotateAccess(rawToken: string) {
-    const payload = await this.parseBearerToken(rawToken);
+    // const payload = await this.parseBearerToken(rawToken);
+    //
+    // return {
+    //   accessToken: await this.issueToken(payload, false),
+    // };
 
-    return {
-      accessToken: await this.issueToken(payload, false),
-    };
-  }
-
-  private async parseBearerToken(rawToken: string) {
-    const [, token] = rawToken.split(' ');
-
-    return await this.jwt.verifyAsync(token, {
-      secret: this.cs.get<string>(ENV_KEY.REFRESH_TOKEN_SECRET),
-    });
+    return 1;
   }
 
   private parseBasicToken(rawToken: string) {
