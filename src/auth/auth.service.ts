@@ -53,14 +53,18 @@ export class AuthService {
     };
   }
 
-  async rotateAccess(rawToken: string) {
-    // const payload = await this.parseBearerToken(rawToken);
-    //
-    // return {
-    //   accessToken: await this.issueToken(payload, false),
-    // };
+  async refreshAccess(payload: { sub: number; type: 'access' | 'refresh' }) {
+    if (!payload) throw new BadRequestException();
 
-    return 1;
+    const { sub, type } = payload;
+
+    if (type === 'access') throw new BadRequestException();
+
+    const user = await this.users.findOne({ where: { id: sub } });
+
+    if (!user) throw new BadRequestException();
+
+    return { accessToken: await this.issueToken(user, false) };
   }
 
   private parseBasicToken(rawToken: string) {

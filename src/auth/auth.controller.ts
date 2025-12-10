@@ -1,4 +1,10 @@
-import { Controller, Post, Headers } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Headers,
+  Request,
+  BadRequestException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './decorator/public.decorator';
 
@@ -20,7 +26,8 @@ export class AuthController {
 
   @Post('token/access')
   @Public()
-  rotateAccess(@Headers('authorization') token: string) {
-    return this.authService.rotateAccess(token);
+  rotateAccess(@Request() req: Request) {
+    const payload = req['user'];
+    return this.authService.refreshAccess(payload);
   }
 }

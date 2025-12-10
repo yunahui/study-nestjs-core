@@ -52,7 +52,7 @@ export class BearerTokenMiddleware implements NestMiddleware {
         throw new UnauthorizedException('Token expired');
       }
 
-      throw new BadRequestException();
+      throw new BadRequestException(1);
     }
   }
 }
