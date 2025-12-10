@@ -3,7 +3,6 @@ import {
   Post,
   Headers,
   Request,
-  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './decorator/public.decorator';
