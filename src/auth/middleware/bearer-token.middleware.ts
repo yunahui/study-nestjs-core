@@ -44,10 +44,11 @@ export class BearerTokenMiddleware implements NestMiddleware {
       );
 
       // 3. 실제 검증 및 Request 객체에 데이터 담기
-      req['user'] = await this.jwt.verify(token, secret);
+      req['user'] = await this.jwt.verifyAsync(token, { secret });
 
       next();
     } catch (e) {
+      console.log(e);
       if (e.name === 'TokenExpiredError') {
         throw new UnauthorizedException('토큰이 만료되었습니다.');
       }
