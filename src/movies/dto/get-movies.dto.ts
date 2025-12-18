@@ -1,12 +1,8 @@
-import { IsArray, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
+import { CursorPaginationDto } from '../../common/dto/cursor-pagination.dto';
 
-export class GetMoviesDto {
-  @IsNotEmpty()
+export class GetMoviesDto extends CursorPaginationDto {
+  @IsString()
   @IsOptional()
-  title: string;
-
-  @IsNotEmpty()
-  @IsOptional()
-  @IsArray()
-  genre: string[];
+  title?: string;
 }

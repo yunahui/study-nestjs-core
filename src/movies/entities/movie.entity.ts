@@ -25,6 +25,11 @@ export class Movie extends CommonEntity {
   @JoinTable()
   genres: Genre[];
 
+  @Column({
+    default: 0,
+  })
+  likeCount: number;
+
   @OneToOne(() => MovieDetail, {
     cascade: true,
     nullable: false,

@@ -8,6 +8,7 @@ import { GetMoviesDto } from './dto/get-movies.dto';
 import { MovieDetail } from './entities/movie-detail.entity';
 import { Director } from '../directors/entities/director.entity';
 import { Genre } from '../genres/entities/genre.entity';
+import { CommonService } from '../common/common.service';
 
 @Injectable()
 export class MoviesService {
@@ -20,6 +21,7 @@ export class MoviesService {
     private readonly directors: Repository<Director>,
     @InjectRepository(Genre)
     private readonly genres: Repository<Genre>,
+    private readonly common: CommonService,
   ) {}
 
   async create(createMovieDto: CreateMovieDto) {
@@ -49,7 +51,9 @@ export class MoviesService {
     });
   }
 
-  findAll(title?: string) {
+  async findAll(dto: GetMoviesDto) {
+    const { title } = dto;
+
     const qb = this.movies.createQueryBuilder('movie');
 
     qb.leftJoinAndSelect('movie.director', 'director');
@@ -59,7 +63,16 @@ export class MoviesService {
       qb.where({ title: Like(`%${title}%`) });
     }
 
-    return qb.getMany();
+    // this.common.applyPagePagination(qb, dto);
+    const { nextCursor } = await this.common.applyCursorPagination(qb, dto);
+
+    const [data, count] = await qb.getManyAndCount();
+
+    return {
+      data,
+      nextCursor,
+      count,
+    };
   }
 
   async findOne(id: number) {
