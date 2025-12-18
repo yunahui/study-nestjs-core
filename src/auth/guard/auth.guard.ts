@@ -7,6 +7,7 @@ export class AuthGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
+    // 1. @Public() 데코레이터 확인
     const isPublic = this.reflector.get(Public, context.getHandler());
 
     if (isPublic) {
@@ -15,6 +16,15 @@ export class AuthGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest();
 
-    return !(!req.user || req.user.type !== 'access');
+    // 2. 미들웨어에서 넣어준 user 객체 확인
+    const user = req.user;
+
+    // 3. 조건: 유저 정보가 존재해야 하며, 반드시 'access' 토큰이어야 함
+    if (user && user.type === 'access') {
+      return true;
+    }
+
+    // 4. 통과하지 못한 경우 (403 Forbidden)
+    return false;
   }
 }
