@@ -7,15 +7,16 @@ import {
   Patch,
   Post,
   Query,
-  UsePipes,
+  UseInterceptors,
+  Request,
 } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { MovieTitleValidationPipe } from './pipe/movie-title-validation.pipe';
 import { RBAC } from '../auth/decorator/rbac.decorator';
 import { Role } from '../users/entities/user.entity';
 import { GetMoviesDto } from './dto/get-movies.dto';
+import { TransactionInterceptor } from '../common/interceptor/transaction.interceptor';
 
 @Controller('movies')
 export class MoviesController {
@@ -23,9 +24,10 @@ export class MoviesController {
 
   @Post()
   @RBAC(Role.admin)
-  @UsePipes(MovieTitleValidationPipe)
-  create(@Body() createMovieDto: CreateMovieDto) {
-    return this.moviesService.create(createMovieDto);
+  @UseInterceptors(TransactionInterceptor)
+  create(@Request() req: Request, @Body() createMovieDto: CreateMovieDto) {
+    const qr = req['qr'];
+    return this.moviesService.create(createMovieDto, qr);
   }
 
   @Get()
@@ -39,8 +41,14 @@ export class MoviesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMovieDto: UpdateMovieDto) {
-    return this.moviesService.update(+id, updateMovieDto);
+  @UseInterceptors(TransactionInterceptor)
+  update(
+    @Request() req: Request,
+    @Param('id') id: string,
+    @Body() updateMovieDto: UpdateMovieDto,
+  ) {
+    const qr = req['qr'];
+    return this.moviesService.update(+id, updateMovieDto, qr);
   }
 
   @Delete(':id')

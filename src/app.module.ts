@@ -23,6 +23,7 @@ import { ENV_KEY } from './common/const/env.const';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
 import { AuthGuard } from './auth/guard/auth.guard';
 import { RBACGuard } from './auth/guard/rbac.guard';
+import { ResponseTimeInterceoptor } from './common/interceptor/response-time.interceoptor';
 
 @Module({
   imports: [
@@ -61,6 +62,10 @@ import { RBACGuard } from './auth/guard/rbac.guard';
     UsersModule,
   ],
   providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseTimeInterceoptor,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,

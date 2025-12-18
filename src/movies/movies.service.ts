@@ -3,7 +3,7 @@ import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { Movie } from './entities/movie.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Like, Repository } from 'typeorm';
+import { In, Like, QueryRunner, Repository } from 'typeorm';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { MovieDetail } from './entities/movie-detail.entity';
 import { Director } from '../directors/entities/director.entity';
@@ -24,24 +24,24 @@ export class MoviesService {
     private readonly common: CommonService,
   ) {}
 
-  async create(createMovieDto: CreateMovieDto) {
-    const director = await this.directors.findOne({
+  async create(createMovieDto: CreateMovieDto, qr: QueryRunner) {
+    const director = await qr.manager.findOne(Director, {
       where: { id: createMovieDto.directorId },
     });
 
-    const genres = await this.genres.find({
+    if (!director) {
+      throw new NotFoundException('존재하지 않는 감독입니다.');
+    }
+
+    const genres = await qr.manager.find(Genre, {
       where: { id: In(createMovieDto.genreIds) },
     });
 
     if (genres.length !== createMovieDto.genreIds.length) {
-      throw new NotFoundException('Genre not found');
+      throw new NotFoundException('존재하지 않는 장르입니다.');
     }
 
-    if (!director) {
-      throw new NotFoundException('Director not found');
-    }
-
-    return this.movies.save({
+    const movie = qr.manager.create(Movie, {
       title: createMovieDto.title,
       genres,
       detail: {
@@ -49,6 +49,8 @@ export class MoviesService {
       },
       director,
     });
+
+    return await qr.manager.save(Movie, movie);
   }
 
   async findAll(dto: GetMoviesDto) {
@@ -86,21 +88,28 @@ export class MoviesService {
     return movie;
   }
 
-  async update(id: number, updateMovieDto: UpdateMovieDto) {
-    const movie = await this.findOne(id);
+  async update(id: number, updateMovieDto: UpdateMovieDto, qr: QueryRunner) {
+    const movie = await qr.manager.findOne(Movie, {
+      where: { id },
+      relations: ['detail', 'director', 'genres'],
+    });
+
+    if (!movie) throw new NotFoundException();
 
     const { description, directorId, genreIds, ...movieRest } = updateMovieDto;
 
     if (genreIds) {
-      const newGenres = await this.genres.find({ where: { id: In(genreIds) } });
+      const newGenres = await qr.manager.find(Genre, {
+        where: { id: In(genreIds) },
+      });
 
       if (newGenres.length !== genreIds.length) throw new NotFoundException();
 
-      await this.movies.save({ id, genres: newGenres });
+      await qr.manager.save(Movie, { id, genres: newGenres });
     }
 
     if (directorId) {
-      const newDirector = await this.directors.findOne({
+      const newDirector = await qr.manager.findOne(Director, {
         where: { id: directorId },
       });
 
@@ -109,13 +118,20 @@ export class MoviesService {
       movieRest['director'] = newDirector;
     }
 
-    await this.movies.update({ id }, movieRest);
+    await qr.manager.update(Movie, { id }, movieRest);
 
     if (description) {
-      await this.movieDetails.update({ id: movie.detail.id }, { description });
+      await qr.manager.update(
+        MovieDetail,
+        { id: movie.detail.id },
+        { description },
+      );
     }
 
-    return this.findOne(id);
+    return qr.manager.findOne(Movie, {
+      where: { id },
+      relations: ['detail', 'director', 'genres'],
+    });
   }
 
   async remove(id: number) {
