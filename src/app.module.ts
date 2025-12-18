@@ -15,7 +15,7 @@ import { DirectorsModule } from './directors/directors.module';
 import { Director } from './directors/entities/director.entity';
 import { GenresModule } from './genres/genres.module';
 import { Genre } from './genres/entities/genre.entity';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
@@ -24,6 +24,7 @@ import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware
 import { AuthGuard } from './auth/guard/auth.guard';
 import { RBACGuard } from './auth/guard/rbac.guard';
 import { ResponseTimeInterceoptor } from './common/interceptor/response-time.interceoptor';
+import { ForbiddennException } from './common/filter/forbidden.filter';
 
 @Module({
   imports: [
@@ -77,6 +78,10 @@ import { ResponseTimeInterceoptor } from './common/interceptor/response-time.int
     {
       provide: APP_GUARD,
       useClass: RBACGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ForbiddennException,
     },
   ],
 })
