@@ -26,7 +26,7 @@ export class MoviesService {
     private readonly common: CommonService,
   ) {}
 
-  async create(dto: CreateMovieDto, qr: QueryRunner) {
+  async create(dto: CreateMovieDto, creatorId: number, qr: QueryRunner) {
     const director = await qr.manager.findOne(Director, {
       where: { id: dto.directorId },
     });
@@ -46,11 +46,6 @@ export class MoviesService {
     const movieDir = join('public', 'movie');
     const tempDir = join('public', 'temp');
 
-    await rename(
-      join(process.cwd(), tempDir, dto.movieFileName),
-      join(process.cwd(), movieDir, dto.movieFileName),
-    );
-
     const movie = qr.manager.create(Movie, {
       title: dto.title,
       genres,
@@ -58,10 +53,20 @@ export class MoviesService {
         description: dto.description,
       },
       director,
+      creator: {
+        id: creatorId,
+      },
       movieFilePath: join(movieDir, dto.movieFileName),
     });
 
-    return await qr.manager.save(Movie, movie);
+    const createdMovie = await qr.manager.save(Movie, movie);
+
+    await rename(
+      join(process.cwd(), tempDir, dto.movieFileName),
+      join(process.cwd(), movieDir, dto.movieFileName),
+    );
+
+    return createdMovie;
   }
 
   async findAll(dto: GetMoviesDto) {

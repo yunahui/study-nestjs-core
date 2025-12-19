@@ -17,6 +17,9 @@ import { RBAC } from '../auth/decorator/rbac.decorator';
 import { Role } from '../users/entities/user.entity';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { TransactionInterceptor } from '../common/interceptor/transaction.interceptor';
+import { UserId } from '../users/decorator/user-id.decorator';
+import { QueryRunner as QR } from '../common/decorator/query-runner.decorator';
+import type { QueryRunner } from 'typeorm';
 
 @Controller('movies')
 export class MoviesController {
@@ -25,9 +28,12 @@ export class MoviesController {
   @Post()
   @RBAC(Role.admin)
   @UseInterceptors(TransactionInterceptor)
-  create(@Request() req: Request, @Body() createMovieDto: CreateMovieDto) {
-    const qr = req['qr'];
-    return this.moviesService.create(createMovieDto, qr);
+  create(
+    @Body() createMovieDto: CreateMovieDto,
+    @UserId() userId: number,
+    @QR() qr: QueryRunner,
+  ) {
+    return this.moviesService.create(createMovieDto, userId, qr);
   }
 
   @Get()

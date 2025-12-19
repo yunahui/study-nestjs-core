@@ -12,11 +12,15 @@ import { CommonEntity } from '../../common/entity/common.entity';
 import { MovieDetail } from './movie-detail.entity';
 import { Director } from '../../directors/entities/director.entity';
 import { Genre } from '../../genres/entities/genre.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Movie extends CommonEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @ManyToOne(() => User)
+  creator: User;
 
   @Column()
   title: string;
