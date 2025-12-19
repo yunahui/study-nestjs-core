@@ -38,6 +38,9 @@ export class Movie extends CommonEntity {
   @JoinColumn()
   detail: MovieDetail;
 
+  @Column()
+  movieFilePath: string;
+
   @ManyToOne(() => Director, {
     nullable: false,
   })

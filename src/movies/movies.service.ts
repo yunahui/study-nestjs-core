@@ -9,6 +9,8 @@ import { MovieDetail } from './entities/movie-detail.entity';
 import { Director } from '../directors/entities/director.entity';
 import { Genre } from '../genres/entities/genre.entity';
 import { CommonService } from '../common/common.service';
+import { join } from 'path';
+import { rename } from 'node:fs/promises';
 
 @Injectable()
 export class MoviesService {
@@ -24,9 +26,9 @@ export class MoviesService {
     private readonly common: CommonService,
   ) {}
 
-  async create(createMovieDto: CreateMovieDto, qr: QueryRunner) {
+  async create(dto: CreateMovieDto, qr: QueryRunner) {
     const director = await qr.manager.findOne(Director, {
-      where: { id: createMovieDto.directorId },
+      where: { id: dto.directorId },
     });
 
     if (!director) {
@@ -34,20 +36,29 @@ export class MoviesService {
     }
 
     const genres = await qr.manager.find(Genre, {
-      where: { id: In(createMovieDto.genreIds) },
+      where: { id: In(dto.genreIds) },
     });
 
-    if (genres.length !== createMovieDto.genreIds.length) {
+    if (genres.length !== dto.genreIds.length) {
       throw new NotFoundException('존재하지 않는 장르입니다.');
     }
 
+    const movieDir = join('public', 'movie');
+    const tempDir = join('public', 'temp');
+
+    await rename(
+      join(process.cwd(), tempDir, dto.movieFileName),
+      join(process.cwd(), movieDir, dto.movieFileName),
+    );
+
     const movie = qr.manager.create(Movie, {
-      title: createMovieDto.title,
+      title: dto.title,
       genres,
       detail: {
-        description: createMovieDto.description,
+        description: dto.description,
       },
       director,
+      movieFilePath: join(movieDir, dto.movieFileName),
     });
 
     return await qr.manager.save(Movie, movie);
